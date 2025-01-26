@@ -43,6 +43,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Acepta solicitudes sin origen (cuando se accede desde el servidor)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true); // Permitir solicitudes desde orígenes válidos
     } else {

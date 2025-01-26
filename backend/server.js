@@ -44,10 +44,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Si no hay origin o el origin está permitido, entonces continuamos
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true); // Permitir solicitudes desde orígenes válidos
+      callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS')); // Bloquear otras solicitudes
+      callback(new Error('Not allowed by CORS')); // Bloquear otros orígenes no permitidos
     }
   },
   credentials: true,  // Si usas cookies o authorization headers

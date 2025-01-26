@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Copy, CheckCircle } from 'lucide-react';
 
 const InformativeWebsite = () => {
   const [copiedIndex, setCopiedIndex] = useState(null);

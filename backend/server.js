@@ -37,9 +37,10 @@ app.use(express.json({ limit: '10kb' })); // Limitar tamaño de payload
 
 // Configurar CORS: Asegúrate de que el valor de CORS_ORIGIN esté bien configurado
 const allowedOrigins = [
-  'https://6796735c0f7c6119a9630e14--wiki-paralegal.netlify.app', // URL de producción de Netlify
+  'https://6796766ce1da87ab413367e3--wiki-paralegal.netlify.app', // URL de producción de Netlify
   'http://localhost:3000', // Para desarrollo local
 ];
+
 
 app.use(cors({
   origin: (origin, callback) => {

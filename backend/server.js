@@ -37,14 +37,12 @@ app.use(express.json({ limit: '10kb' })); // Limitar tamaño de payload
 
 // Configurar CORS: Asegúrate de que el valor de CORS_ORIGIN esté bien configurado
 const allowedOrigins = [
-  'https://6796766ce1da87ab413367e3--wiki-paralegal.netlify.app', // URL de producción de Netlify
-  'http://localhost:3000', // Para desarrollo local
+  'https://wiki-paralegal.netlify.app', // URL de producción de Netlify
+  'http://localhost:3000', // URL local para desarrollo
 ];
-
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Acepta solicitudes sin origen (cuando se accede desde el servidor)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true); // Permitir solicitudes desde orígenes válidos
     } else {
@@ -55,6 +53,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 
 // Aplicar rate limiting a rutas específicas
 app.use('/api/auth/login', loginLimiter);

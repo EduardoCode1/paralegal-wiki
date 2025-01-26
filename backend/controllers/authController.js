@@ -1,4 +1,3 @@
-// === controllers/authController.js ===
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
@@ -62,90 +61,37 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log('Login attempt:', { username }); // No logueamos la contraseña
 
     if (!validateRequiredFields({ username, password })) {
+      console.log('Invalid fields provided');
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const sanitizedUsername = sanitizeInput(username);
+    console.log('Sanitized username:', sanitizedUsername);
+
     const user = await User.findOne({ username: sanitizedUsername }).select('+password').exec();
+    console.log('User found:', user ? 'Yes' : 'No');
 
     if (!user) {
+      console.log('No user found with username:', sanitizedUsername);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const isMatch = await user.comparePassword(password);
+    console.log('Password match:', isMatch);
+
     if (!isMatch) {
+      console.log('Password did not match');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const token = jwt.sign({ userId: user._id }, config.JWT_SECRET, { expiresIn: '24h' });
+    console.log('Token generated successfully');
     res.json({ token });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Error during login', error: 'An unexpected error occurred' });
   }
 };
-
-exports.getUsers = async (req, res) => {
-  try {
-    const users = await User.find().select('-password').lean().exec();
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching users', error: 'An unexpected error occurred' });
-  }
-};
-
-exports.getUser = async (req, res) => {
-  try {
-    const userId = sanitizeInput(req.params.id);
-    
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid user ID format' });
-    }
-
-    const user = await User.findById(userId).select('-password').lean().exec();
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching user', error: 'An unexpected error occurred' });
-  }
-};
-exports.login = async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      console.log('Login attempt:', { username }); // No logueamos la contraseña
-  
-      if (!validateRequiredFields({ username, password })) {
-        console.log('Invalid fields provided');
-        return res.status(400).json({ message: 'Invalid credentials' });
-      }
-  
-      const sanitizedUsername = sanitizeInput(username);
-      console.log('Sanitized username:', sanitizedUsername);
-  
-      const user = await User.findOne({ username: sanitizedUsername }).select('+password').exec();
-      console.log('User found:', user ? 'Yes' : 'No');
-  
-      if (!user) {
-        console.log('No user found with username:', sanitizedUsername);
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-  
-      const isMatch = await user.comparePassword(password);
-      console.log('Password match:', isMatch);
-  
-      if (!isMatch) {
-        console.log('Password did not match');
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-  
-      const token = jwt.sign({ userId: user._id }, config.JWT_SECRET, { expiresIn: '24h' });
-      console.log('Token generated successfully');
-      res.json({ token });
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ message: 'Error during login', error: 'An unexpected error occurred' });
-    }
-  };

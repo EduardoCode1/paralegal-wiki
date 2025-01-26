@@ -34,18 +34,31 @@ const loginLimiter = rateLimit({
 app.use(helmet()); // Seguridad de Headers HTTP
 app.use(mongoSanitize()); // Prevención de inyección NoSQL
 app.use(express.json({ limit: '10kb' })); // Limitar tamaño de payload
+
+// Configurar CORS: Asegúrate de que el valor de CORS_ORIGIN esté bien configurado
+const allowedOrigins = [
+  'https://6796735c0f7c6119a9630e14--wiki-paralegal.netlify.app', // URL de producción de Netlify
+  'http://localhost:3000', // Para desarrollo local
+];
+
 app.use(cors({
-  origin: config.CORS_ORIGIN,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true); // Permitir solicitudes desde orígenes válidos
+    } else {
+      callback(new Error('Not allowed by CORS')); // Bloquear otras solicitudes
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Aplicar rate limiting a rutas específicas
 app.use('/api/auth/login', loginLimiter);
 app.use('/api/auth/register', rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
-  max: 3 // 3 intentos de registro por hora
+  max: 3, // 3 intentos de registro por hora
 }));
 
 // Rutas

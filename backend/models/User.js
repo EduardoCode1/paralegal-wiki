@@ -1,4 +1,3 @@
-// === models/User.js ===
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -9,18 +8,13 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     minlength: 3,
-    maxlength: 20,
-    validate: {
-      validator: function(v) {
-        return /^[a-zA-Z0-9_]+$/.test(v);
-      },
-      message: 'Username can only contain letters, numbers and underscores'
-    }
+    maxlength: 20
   },
   password: {
     type: String,
     required: true,
-    minlength: 8
+    minlength: 8,
+    select: false
   },
   createdAt: {
     type: Date,

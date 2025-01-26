@@ -1,26 +1,15 @@
 const mongoose = require('mongoose');
+const config = require('../config/config');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect('mongodb+srv://Eduardo:Gatosbellos0@paralegal-a.nfevj.mongodb.net/', {
-      dbName: 'paralegal',
+    await mongoose.connect(config.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-
-    console.log('MongoDB Connected: ' + conn.connection.host);
-    
-    // Test the connection
-    await mongoose.connection.db.admin().ping();
-    console.log('Database ping successful');
-    
+    console.log('MongoDB Connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    // Log more details about the error
-    if (error.name === 'MongoServerError') {
-      console.error('MongoDB Server Error Code:', error.code);
-      console.error('MongoDB Server Error Message:', error.errmsg);
-    }
     process.exit(1);
   }
 };

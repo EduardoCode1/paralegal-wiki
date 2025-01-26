@@ -1,5 +1,4 @@
-// src/components/AnimatedLogin/AnimatedLogin.jsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -24,7 +23,7 @@ const AnimatedLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  class Circle {
+  const Circle = useMemo(() => class Circle {
     constructor(pos, rad, color) {
       this.pos = pos || null;
       this.radius = rad || null;
@@ -39,19 +38,19 @@ const AnimatedLogin = () => {
       ctxRef.current.fillStyle = `rgba(156,217,249,${this.active})`;
       ctxRef.current.fill();
     }
-  }
+  }, []);
 
-  const getDistance = (p1, p2) => {
+  const getDistance = useCallback((p1, p2) => {
     return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
-  };
+  }, []);
 
-  const initHeader = () => {
+  const initHeader = useCallback(() => {
     widthRef.current = window.innerWidth;
     heightRef.current = window.innerHeight;
     targetRef.current = { x: widthRef.current/2, y: heightRef.current/2 };
 
     if (headerRef.current) {
-      headerRef.current.style.height = heightRef.current+'px';
+      headerRef.current.style.height = `${heightRef.current}px`;
     }
 
     if (canvasRef.current) {
@@ -62,8 +61,8 @@ const AnimatedLogin = () => {
 
     // Create points
     pointsRef.current = [];
-    for(let x = 0; x < widthRef.current; x = x + widthRef.current/20) {
-      for(let y = 0; y < heightRef.current; y = y + heightRef.current/20) {
+    for(let x = 0; x < widthRef.current; x += widthRef.current/20) {
+      for(let y = 0; y < heightRef.current; y += heightRef.current/20) {
         const px = x + Math.random()*widthRef.current/20;
         const py = y + Math.random()*heightRef.current/20;
         const p = {x: px, originX: px, y: py, originY: py };
@@ -77,7 +76,7 @@ const AnimatedLogin = () => {
       const p1 = pointsRef.current[i];
       for(let j = 0; j < pointsRef.current.length; j++) {
         const p2 = pointsRef.current[j];
-        if(!(p1 === p2)) {
+        if(p1 !== p2) {
           let placed = false;
           for(let k = 0; k < 5; k++) {
             if(!placed) {
@@ -102,12 +101,12 @@ const AnimatedLogin = () => {
     }
 
     // Assign circles to points
-    for(let i in pointsRef.current) {
-      pointsRef.current[i].circle = new Circle(pointsRef.current[i], 2+Math.random()*2, 'rgba(255,255,255,0.3)');
+    for(const point of pointsRef.current) {
+      point.circle = new Circle(point, 2+Math.random()*2, 'rgba(255,255,255,0.3)');
     }
-  };
+  }, [getDistance, Circle]);
 
-  const mouseMove = (e) => {
+  const mouseMove = useCallback((e) => {
     let posx = 0;
     let posy = 0;
     if (e.pageX || e.pageY) {
@@ -118,36 +117,36 @@ const AnimatedLogin = () => {
       posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
     }
     targetRef.current = { x: posx, y: posy };
-  };
+  }, []);
 
-  const scrollCheck = () => {
+  const scrollCheck = useCallback(() => {
     animateHeaderRef.current = document.body.scrollTop <= heightRef.current;
-  };
+  }, []);
 
-  const resize = () => {
+  const resize = useCallback(() => {
     widthRef.current = window.innerWidth;
     heightRef.current = window.innerHeight;
     if (headerRef.current) {
-      headerRef.current.style.height = heightRef.current+'px';
+      headerRef.current.style.height = `${heightRef.current}px`;
     }
     if (canvasRef.current) {
       canvasRef.current.width = widthRef.current;
       canvasRef.current.height = heightRef.current;
     }
-  };
+  }, []);
 
-  const drawLines = (p) => {
+  const drawLines = useCallback((p) => {
     if(!p.active || !ctxRef.current) return;
-    for(let i in p.closest) {
+    for(const closest of p.closest) {
       ctxRef.current.beginPath();
       ctxRef.current.moveTo(p.x, p.y);
-      ctxRef.current.lineTo(p.closest[i].x, p.closest[i].y);
+      ctxRef.current.lineTo(closest.x, closest.y);
       ctxRef.current.strokeStyle = `rgba(156,217,249,${p.active})`;
       ctxRef.current.stroke();
     }
-  };
+  }, []);
 
-  const shiftPoint = (p) => {
+  const shiftPoint = useCallback((p) => {
     gsap.to(p, {
       duration: 1 + Math.random(),
       x: p.originX - 50 + Math.random()*100,
@@ -155,13 +154,12 @@ const AnimatedLogin = () => {
       ease: "circ.inOut",
       onComplete: () => shiftPoint(p)
     });
-  };
+  }, []);
 
-  const animate = () => {
+  const animate = useCallback(() => {
     if(animateHeaderRef.current) {
       ctxRef.current?.clearRect(0,0,widthRef.current,heightRef.current);
-      for(let i in pointsRef.current) {
-        const point = pointsRef.current[i];
+      for(const point of pointsRef.current) {
         if(Math.abs(getDistance(targetRef.current, point)) < 4000) {
           point.active = 0.3;
           point.circle.active = 0.6;
@@ -180,7 +178,7 @@ const AnimatedLogin = () => {
       }
     }
     requestRef.current = requestAnimationFrame(animate);
-  };
+  }, [drawLines, getDistance]);
 
   useEffect(() => {
     initHeader();
@@ -191,16 +189,18 @@ const AnimatedLogin = () => {
     window.addEventListener('scroll', scrollCheck);
     window.addEventListener('resize', resize);
   
-    animate();
+    const animationFrame = requestAnimationFrame(animate);
+    requestRef.current = animationFrame;
+
     pointsRef.current.forEach(point => shiftPoint(point));
   
     return () => {
       window.removeEventListener('mousemove', mouseMove);
       window.removeEventListener('scroll', scrollCheck);
       window.removeEventListener('resize', resize);
-      cancelAnimationFrame(requestRef.current);
+      cancelAnimationFrame(animationFrame);
     };
-  }, [animate, initHeader, shiftPoint, mouseMove, scrollCheck, resize, pointsRef, requestRef]);
+  }, [initHeader, animate, mouseMove, scrollCheck, resize, shiftPoint]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

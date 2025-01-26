@@ -36,25 +36,29 @@ app.use(helmet()); // Seguridad de Headers HTTP
 app.use(mongoSanitize()); // Prevención de inyección NoSQL
 app.use(express.json({ limit: '10kb' })); // Limitar tamaño de payload
 
-// Configurar CORS
+// Configurar CORS con opciones más flexibles
 const allowedOrigins = [
-  'https://wiki-paralegal.netlify.app', // URL de producción de Netlify
-  'http://localhost:3000', // URL local para desarrollo
+  'https://wiki-paralegal.netlify.app', 
+  'http://localhost:3000',
+  'http://localhost:5000'
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Si no hay origin o el origin está permitido, entonces continuamos
-    if (!origin || allowedOrigins.includes(origin)) {
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin origen (como las de aplicaciones móviles o curl)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS')); // Bloquear otros orígenes no permitidos
+      callback(new Error('Origen no permitido por CORS'));
     }
   },
-  credentials: true,  // Si usas cookies o authorization headers
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 // Aplicar rate limiting a rutas específicas
 app.use('/api/auth/login', loginLimiter);

@@ -184,23 +184,23 @@ const AnimatedLogin = () => {
 
   useEffect(() => {
     initHeader();
-
+  
     if(!('ontouchstart' in window)) {
       window.addEventListener('mousemove', mouseMove);
     }
     window.addEventListener('scroll', scrollCheck);
     window.addEventListener('resize', resize);
-
+  
     animate();
     pointsRef.current.forEach(point => shiftPoint(point));
-
+  
     return () => {
       window.removeEventListener('mousemove', mouseMove);
       window.removeEventListener('scroll', scrollCheck);
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(requestRef.current);
     };
-  }, []);
+  }, [animate, initHeader, shiftPoint, mouseMove, scrollCheck, resize, pointsRef, requestRef]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

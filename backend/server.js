@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 5, // 5 intentos
-  message: 'Too many login attempts, please try again later'
+  message: 'Too many login attempts, please try again later',
 });
 
 // Middleware de seguridad
@@ -36,7 +36,7 @@ app.use(helmet()); // Seguridad de Headers HTTP
 app.use(mongoSanitize()); // Prevención de inyección NoSQL
 app.use(express.json({ limit: '10kb' })); // Limitar tamaño de payload
 
-// Configurar CORS: Asegúrate de que el valor de CORS_ORIGIN esté bien configurado
+// Configurar CORS
 const allowedOrigins = [
   'https://wiki-paralegal.netlify.app', // URL de producción de Netlify
   'http://localhost:3000', // URL local para desarrollo
@@ -50,11 +50,10 @@ app.use(cors({
       callback(new Error('Not allowed by CORS')); // Bloquear otras solicitudes
     }
   },
-  credentials: true,
+  credentials: true,  // Si usas cookies o authorization headers
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
 
 // Aplicar rate limiting a rutas específicas
 app.use('/api/auth/login', loginLimiter);
@@ -68,9 +67,9 @@ app.use('/api/auth', authRoutes);
 
 // Ruta de prueba
 app.get('/test', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'API is working',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -80,13 +79,13 @@ app.use((err, req, res, next) => {
   console.error(`[${timestamp}] Error:`, {
     path: req.path,
     method: req.method,
-    error: err.message
+    error: err.message,
   });
   
-  res.status(500).json({ 
-    message: 'Something went wrong!', 
+  res.status(500).json({
+    message: 'Something went wrong!',
     error: err.message,
-    timestamp 
+    timestamp,
   });
 });
 
